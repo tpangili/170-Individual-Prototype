@@ -8,10 +8,20 @@ description = `
 
 characters = [
   `
- yy
-ylly
-ylly
- yy
+ bbbb
+bllllb
+bllllb
+bllllb
+bllllb
+ bbbb
+`,
+  `
+ gggg
+g gg g
+g gg g
+gggggg
+gggggg
+gg  gg
 `,
 ];
 
@@ -27,7 +37,7 @@ options = {
   theme: "pixel",
   isPlayingBgm: true,
   isReplayEnabled: true,
-  seed: 81,
+  seed: 80,
 };
 
 /**
@@ -37,13 +47,27 @@ options = {
 */
 
 /**
+ * @typedef {{
+* pos: Vector,
+* }} Ghost
+*/
+
+/**
 * @type { Player }
 */
 let player;
 
+/**
+* @type { Ghost }
+*/
+let ghost;
+
 function update() {
   if (!ticks) {
     player = {
+      pos: vec(G.WIDTH * 0.5, G.HEIGHT * 0.5),
+    };
+    ghost = {
       pos: vec(G.WIDTH * 0.5, G.HEIGHT * 0.5),
     };
   }
@@ -51,17 +75,24 @@ function update() {
   // Updating and drawing the player
   player.pos = vec(input.pos.x, input.pos.y);
   player.pos.clamp(0, G.WIDTH, 0, G.HEIGHT);
-
   color("black");
   char("a", player.pos);
 
-  //color("light_yellow");
-  //arc(player.pos, 4, 2, ticks * 0.03, ticks * 0.1 + PI);
-  //arc(player.pos, 4, 2, ticks * 0.03 + PI, ticks * 0.1 + PI * 2);
+  color("black");
+  char("b", ghost.pos);
 
+  // Checks collision with ghost after
+  // input button pressed.
   if(input.isJustPressed){
-    color("light_yellow");
+    color("yellow");
     arc(player.pos, 4, 2, ticks * 0.03, ticks * 0.1 + PI);
     arc(player.pos, 4, 2, ticks * 0.03 + PI, ticks * 0.1 + PI * 2);
+    if(char("b", ghost.pos).isColliding.char.a){
+      color("green");
+      particle(ghost.pos);
+      play("explosion");
+      addScore(10);
+      //remove(ghost);
+    }
   }
 }
