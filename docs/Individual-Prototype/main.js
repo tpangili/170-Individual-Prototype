@@ -38,9 +38,9 @@ const G = {
 options = {
   //viewSize: { x: VIEW_X, y: VIEW_Y },
   theme: "pixel",
-  //isPlayingBgm: true,
-  //isReplayEnabled: true,
-  //seed: 80,
+  isPlayingBgm: true,
+  isReplayEnabled: true,
+  seed: 69,
 };
 
 /**
@@ -51,7 +51,7 @@ options = {
 
 /**
  * @typedef {{
-* pos: Vector,
+* pos: Vector, angle: number
 * }} Ghost
 */
 
@@ -83,28 +83,30 @@ function update() {
     ghosts = [];
   }
 
-  // Spawning enemies
-  if (ghosts.length < 10) {
-    currentGhostSpeed =
-        rnd(G.GHOST_MIN_BASE_SPEED, G.GHOST_MAX_BASE_SPEED) * difficulty;
-
-    const posX = rnd(0, G.WIDTH);
-    const posY = -rnd(G.HEIGHT * 0.1);
-    ghosts.push({
-        pos: vec(posX, posY) 
-    });
-
-    //waveCount++; // Increase the tracking variable by one
-  }
-
   // Updating and drawing the player
   player.pos = vec(input.pos.x, input.pos.y);
   player.pos.clamp(0, G.WIDTH, 0, G.HEIGHT);
   color("black");
   char("a", player.pos);
 
-  //color("black");
-  //char("b", ghost.pos);
+  const sp = input.pos.clamp(1, 99, 1, 99);
+  const ta = player.pos.angleTo(sp);
+  // Spawning enemies
+  if (ghosts.length < 15) {
+    currentGhostSpeed =
+        rnd(G.GHOST_MIN_BASE_SPEED, G.GHOST_MAX_BASE_SPEED) * difficulty;
+
+    const posX = rnd(0, G.WIDTH);
+    //const posY = -rnd(G.HEIGHT * 0.1);
+    const posY = 35;
+    const position = vec(posX, posY);
+    ghosts.push({
+        pos: vec(posX, posY),
+        angle: position.angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT))),
+    });
+
+    //waveCount++; // Increase the tracking variable by one
+  }
 
   // Checks collision with ghost after
   // input button pressed.
@@ -112,17 +114,14 @@ function update() {
     color("yellow");
     arc(player.pos, 4, 2, ticks * 0.03, ticks * 0.1 + PI);
     arc(player.pos, 4, 2, ticks * 0.03 + PI, ticks * 0.1 + PI * 2);
-    /*if(char("b", ghost.pos).isColliding.char.a){
-      color("green");
-      particle(ghost.pos);
-      play("explosion");
-      addScore(10);
-      //remove(ghost);
-    }*/
   }
 
+  // Handles ghost behavior
   remove(ghosts, (e) => {
-    e.pos.y += currentGhostSpeed;
+    e.pos.clamp(0, G.WIDTH, 0, G.HEIGHT);
+    // Old-fashioned trigonometry to find out the velocity on each axis
+    e.pos.x += G.GHOST_MIN_BASE_SPEED * Math.cos(e.angle);
+    e.pos.y += G.GHOST_MIN_BASE_SPEED * Math.sin(e.angle);
     color("black");
     // Shorthand to check for collision against another specific type
     // Also draw the sprite
@@ -138,7 +137,12 @@ function update() {
         isEsploded = true;
     }
 
+    // Check whether ghost has reached edge
+    if( e.pos.x >= G.WIDTH || e.pos.x <= 0 || e.pos.y <= 0 || e.pos.y >= G.HEIGHT){
+      e.angle = e.pos.angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)))
+    }
+
     // Also another condition to remove the object
-    return (isEsploded || e.pos.y > G.HEIGHT);
+    return (isEsploded);
   });
 }
