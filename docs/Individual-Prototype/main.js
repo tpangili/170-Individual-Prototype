@@ -30,7 +30,7 @@ const G = {
 	HEIGHT: 150,
 
   GHOST_MIN_BASE_SPEED: 1.0,
-  GHOST_MAX_BASE_SPEED: 1.0,
+  GHOST_MAX_BASE_SPEED: 2.0,
 };
 
 //const VIEW_X = 200;
@@ -40,6 +40,7 @@ options = {
   theme: "pixel",
   isPlayingBgm: true,
   isReplayEnabled: true,
+  //isShowingTime: true,
   seed: 75,
 };
 
@@ -82,6 +83,11 @@ function update() {
       angle: vec(G.WIDTH * 0.5, G.HEIGHT * 0.5).angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT))),
     };
     ghosts = [];
+  }
+
+  // Timer as a lose condition
+  if(ticks >= 3000){
+    end("TIME'S UP");
   }
 
   // Updating and drawing the player
@@ -141,7 +147,7 @@ function update() {
         color("green");
         particle(e.pos);
         play("explosion");
-        addScore(10);
+        addScore(10, e.pos);
         isEsploded = true;
     }
     if (!isCollidingWithLight && input.isJustPressed) {
