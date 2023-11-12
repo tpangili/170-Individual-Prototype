@@ -1,7 +1,7 @@
 title = "GHOST HUNT";
 
 description = `
-  [Click]
+   [Tap]
 
  Flashlight
 `;
@@ -40,12 +40,12 @@ options = {
   theme: "pixel",
   isPlayingBgm: true,
   isReplayEnabled: true,
-  seed: 69,
+  seed: 75,
 };
 
 /**
  * @typedef {{
-* pos: Vector,
+* pos: Vector, angle: number
 * }} Player
 */
 
@@ -79,15 +79,23 @@ function update() {
   if (!ticks) {
     player = {
       pos: vec(G.WIDTH * 0.5, G.HEIGHT * 0.5),
+      angle: vec(G.WIDTH * 0.5, G.HEIGHT * 0.5).angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT))),
     };
     ghosts = [];
   }
 
   // Updating and drawing the player
-  player.pos = vec(input.pos.x, input.pos.y);
+  //player.pos = vec(input.pos.x, input.pos.y);
   player.pos.clamp(0, G.WIDTH, 0, G.HEIGHT);
   color("black");
   char("a", player.pos);
+  // Old-fashioned trigonometry to find out the velocity on each axis
+  player.pos.x += G.GHOST_MIN_BASE_SPEED * Math.cos(player.angle);
+  player.pos.y += G.GHOST_MIN_BASE_SPEED * Math.sin(player.angle);
+  // Check whether player has reached edge
+  if( player.pos.x >= G.WIDTH || player.pos.x <= 0 || player.pos.y <= 0 || player.pos.y >= (G.HEIGHT - 45) ){
+    player.angle = player.pos.angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)))
+  }
 
   const sp = input.pos.clamp(1, 99, 1, 99);
   const ta = player.pos.angleTo(sp);
@@ -136,10 +144,13 @@ function update() {
         addScore(10);
         isEsploded = true;
     }
+    if (!isCollidingWithLight && input.isJustPressed) {
+      e.angle = -e.pos.angleTo(player.pos)
+    }
 
     // Check whether ghost has reached edge
-    if( e.pos.x >= G.WIDTH || e.pos.x <= 0 || e.pos.y <= 0 || e.pos.y >= G.HEIGHT){
-      e.angle = e.pos.angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)))
+    if( e.pos.x >= G.WIDTH || e.pos.x <= 0 || e.pos.y <= 0 || e.pos.y >= (G.HEIGHT - 45)){
+      e.angle = e.pos.angleTo(vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)));
     }
 
     // Also another condition to remove the object
